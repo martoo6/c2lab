@@ -27,6 +27,7 @@
     "body-parser": "^1.17.2",
     "chai": "4.0.2",
     "compression": "^1.6.2",
+    "cors": "^2.8.3",
     "dotenv": "4.0.0",
     "ensime-client": "^0.9.1",
     "express": "4.15.3",
@@ -47,6 +48,7 @@
     "mongoose": "4.9.7",
     "morgan": "1.8.1",
     "request": "2.81.0",
+    "uuid": "^3.0.1",
     "validator": "7.0.0"
   },
   "devDependencies": {

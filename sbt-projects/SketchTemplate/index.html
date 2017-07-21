@@ -1,0 +1,22 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { margin: 0; overflow:hidden;}
+        canvas { width: 100%; height: 100% }
+    </style>
+</head>
+<body>
+<!-- Include Library compiled code and shared dependencies -->
+<script type="text/javascript" src="../lib/c2lab-opt.js"></script>
+<script type="text/javascript" src="../lib/jsdeps.min.js"></script>
+<!-- Include project compiled code - Handelbars or similar could help to generate the right name -->
+<script type="text/javascript" src="./target/scala-2.12/SKETCH_NAME-fastopt.js"></script>
+<!-- Run Sketch -->
+<script type="text/javascript">
+    var app = new ThreeJSApp();
+    App().run(app);
+</script>
+</body>
+</html>
+

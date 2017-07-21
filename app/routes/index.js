@@ -5,13 +5,32 @@ const hooks = require('feathers-hooks');
 const memory = require('feathers-memory');
 const authentication = require('feathers-authentication');
 const local = require('feathers-authentication-local');
-const jwt = require('feathers-authentication-jwt');
 const bodyParser = require('body-parser');
 const handler = require('feathers-errors/handler');
 const ensimeClient = require('ensime-client');
 const cors = require('cors');
 const Bluebird = require('bluebird');
 const uuidV4 = require('uuid/v4');
+const spawn = require('child_process').spawn;
+const path = require('path');
+const fs = require('fs');
+const dauria = require('dauria');
+const _ = require('lodash');
+const mongoose = require('mongoose');
+const MongoService = require('feathers-mongoose');
+const SketchesHooksAfter = require('../controllers/SketchesHookAfter');
+const Sketch = require('../models/sketch');
+const SbtService = require('../services/sbt-service');
+const sketchesShowcase = require('../services/sketches-showcase');
+
+const errorHandler = require('feathers-errors/handler');
+//const wrench = require('wrench');
+
+//TODO: MOVE TO CONFIG, USE .ENV
+mongoose.Promise = Bluebird;
+mongoose.connect('mongodb://c2lab:e5GLCyghJCkpph2C@ds161495.mlab.com:61495/c2lab', {promiseLibrary: Bluebird});
+
+
 
 // A Feathers app is the same as an Express app
 const app = feathers();
@@ -22,36 +41,29 @@ app.use(require('compression')())
    .use(bodyParser.json())
    .use(bodyParser.urlencoded({ extended: true }));
 
-// Register hooks module
-app.configure(hooks());
-// Add REST API support
-app.configure(rest());
-// Configure Socket.io real-time APIs
-app.configure(socketio());
-// Register our authentication plugin
-app.configure(authentication({ idField: 'id', secret: 'supersecret' }));
-// Register our local (username + password) authentication plugin
-app.configure(local())
-// Register our JWT authentication plugin
-app.configure(jwt())
-// Register our memory "users" service
-app.use('/users', memory());
-// Register a nicer error handler than the default Express one
-app.use(handler());
+app.configure(hooks())
+   .configure(rest())
+   .use(handler())
+   .use(errorHandler());
 
+//TODO: falta autenticacion y verificar solo privado, whitelist, etc.
+app.use('/sketches/showcase', feathers.static(path.join(__dirname, '../../sketches-showcase')));
+app.use('/sketches/run/:id', (req, res) => {
 
-class CleanUpFakeUI {
-
-	constructor(projectPath) {
-		this.projectPath = projectPath;
+		return SbtService.compile(req.param.id, '')
+			.then((x) => res.send(x))
+			.catch((e) => res.status(500).send(e));
+			//.then((code) => sketchesShowcase.create({uri: dauria.getBase64DataURI(new Buffer(code), 'text/html')}));
 	}
+);
 
-	destroy() {
-		//log.debug(`Cleaning ${this.projectPath} project`);
-		//temp.cleanupSync();
-	}
-}
+app.use('/sketches', MongoService({Model: Sketch}));
 
+app.service('/sketches').hooks({
+	after: SketchesHooksAfter
+});
+
+/*
 app.use('/ensime', {
 	serverInstances: {
 		amount: 0
@@ -88,7 +100,7 @@ app.use('/ensime', {
 		}).catch(console.log);
 	}
 });
-
+*/
 
 
 // app.service('authentication').hooks({
@@ -116,10 +128,10 @@ app.use('/ensime', {
 // });
 
 // Create a test user
-app.service('users').create({
-	email: 'admin@feathersjs.com',
-	password: 'admin'
-});
+// app.service('users').create({
+// 	email: 'admin@feathersjs.com',
+// 	password: 'admin'
+// });
 
 // Start the server
 app.listen(3000);

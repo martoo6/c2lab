@@ -36,8 +36,8 @@ mongoose.connect('mongodb://c2lab:e5GLCyghJCkpph2C@ds161495.mlab.com:61495/c2lab
 const app = feathers();
 
 app.use(require('compression')())
-	 //.options('*', cors())
-	 //.use(cors)
+	 .options('*', cors())
+	 .use(cors)
    .use(bodyParser.json())
    .use(bodyParser.urlencoded({ extended: true }));
 
@@ -47,21 +47,21 @@ app.configure(hooks())
    .use(errorHandler());
 
 //TODO: falta autenticacion y verificar solo privado, whitelist, etc.
-app.use('/sketches/showcase', feathers.static(path.join(__dirname, '../../sketches-showcase')));
-app.use('/sketches/run/:id', (req, res) => {
-
-		return SbtService.compile(req.param.id, '')
-			.then((x) => res.send(x))
-			.catch((e) => res.status(500).send(e));
+//app.use('/sketches/showcase', feathers.static(path.join(__dirname, '../../sketches-showcase')));
+app.use('/sketches/:id/preview', {
+		create(data, params) {
+			return SbtService.compile(params.id, data.code)
+			.then((x) => ({ code: x }));
 			//.then((code) => sketchesShowcase.create({uri: dauria.getBase64DataURI(new Buffer(code), 'text/html')}));
+		}
 	}
 );
 
-app.use('/sketches', MongoService({Model: Sketch}));
+//app.use('/sketches', MongoService({Model: Sketch}));
 
-app.service('/sketches').hooks({
-	after: SketchesHooksAfter
-});
+//app.service('/sketches').hooks({
+//	after: SketchesHooksAfter
+//});
 
 /*
 app.use('/ensime', {

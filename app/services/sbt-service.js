@@ -7,7 +7,7 @@ const fs = require('fs-extra');
 const spawn = require('child_process').spawn;
 const path = require('path');
 const readline = require('readline');
-
+const stripAnsi = require('strip-ansi');
 
 let sbtProc;
 const processToSketchMap = {};
@@ -37,9 +37,10 @@ function startSbt() {
 			console.log(`[SBT] - stdout: ${data}`);
 			//CHECK FOR SUCCESS OR ERROR !
 			compilationResult+= data + '\n';
-			if (data.match(/\[success\] Total time: \d* s, completed/)) {
+			console.log(stripAnsi(data).match(/\[success\] Total time: \d* s, completed/));
+			if (stripAnsi(data).match(/\[success\] Total time: \d* s, completed/)) {
 				currentResolve(compilationResult); //TODO: grab actual compilation result
-			} else if (data.match(/\[error\] Total time: \d* s, completed/)) {
+			} else if (stripAnsi(data).match(/\[error\] Total time: \d* s, completed/)) {
 				currentReject(compilationResult);  //TODO: Show actual failure
 			}
 		});
@@ -58,6 +59,7 @@ startSbt();
 class SbtService {
 	static create(id){
 		if (!_.isEmpty(availableSlots)) {
+			//TODO: Change for LRU
 			const slot = availableSlots.pop();
 			processToSketchMap[id] = slot;
 			return fs.copyAsync('sbt-projects/SketchTemplate', 'sbt-projects/sketch0' + slot, {overwrite: true})

@@ -1,17 +1,14 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const userLikesSchema = new Schema({
-	user_id: String,
-	name: String
-});
-
 const sketchSchema = new Schema({
 	title: { type: String, required: true },
-	code: { type: String, default: "" },
+	code: { type: String, default: '' },
 	tags: { type: [String], default: [] },
-	likes: { type: [userLikesSchema], default: [] },
-	thumbnails: { type: [String], default: [] }
+	owner: { type: String, required: true },
+	thumbnails: { type: [String], default: [] },
+	is_public: { type: [String], default: true },
+	published_url: { type: [String] }
 });
 
 const Sketch = mongoose.model('Sketch', sketchSchema);

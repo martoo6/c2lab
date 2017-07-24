@@ -20,6 +20,8 @@ const mongoose = require('mongoose');
 const MongoService = require('feathers-mongoose');
 const SketchesHooksAfter = require('../controllers/SketchesHookAfter');
 const Sketch = require('../models/sketch');
+const Like = require('../models/like');
+const Follower = require('../models/follower');
 const SbtService = require('../services/sbt-service');
 const sketchesShowcase = require('../services/sketches-showcase');
 
@@ -57,7 +59,9 @@ app.use('/sketches/:id/preview', {
 	}
 );
 
-//app.use('/sketches', MongoService({Model: Sketch}));
+app.use('/sketches', MongoService({Model: Sketch}));
+app.use('/likes', MongoService({Model: Like}));
+app.use('/followers', MongoService({Model: Follower}));
 
 //app.service('/sketches').hooks({
 //	after: SketchesHooksAfter

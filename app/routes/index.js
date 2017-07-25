@@ -1,32 +1,30 @@
 const feathers = require('feathers');
 const rest = require('feathers-rest');
-const socketio = require('feathers-socketio');
+// const socketio = require('feathers-socketio');
 const hooks = require('feathers-hooks');
-const memory = require('feathers-memory');
 const authentication = require('feathers-authentication');
 const local = require('feathers-authentication-local');
 const bodyParser = require('body-parser');
 const handler = require('feathers-errors/handler');
-const ensimeClient = require('ensime-client');
+// const ensimeClient = require('ensime-client');
 const cors = require('cors');
 const Bluebird = require('bluebird');
-const uuidV4 = require('uuid/v4');
-const spawn = require('child_process').spawn;
+// const uuidV4 = require('uuid/v4');
+// const spawn = require('child_process').spawn;
 const path = require('path');
 const fs = require('fs');
 const dauria = require('dauria');
-const _ = require('lodash');
+// const _ = require('lodash');
 const mongoose = require('mongoose');
 const MongoService = require('feathers-mongoose');
 const SketchesHooksAfter = require('../controllers/SketchesHookAfter');
 const Sketch = require('../models/sketch');
 const Like = require('../models/like');
 const Follower = require('../models/follower');
-const SbtService = require('../services/sbt-service');
-const sketchesShowcase = require('../services/sketches-showcase');
+// const SbtService = require('../services/sbt-service');
+// const sketchesShowcase = require('../services/sketches-showcase');
 
 const errorHandler = require('feathers-errors/handler');
-//const wrench = require('wrench');
 
 //TODO: MOVE TO CONFIG, USE .ENV
 mongoose.Promise = Bluebird;
@@ -38,8 +36,8 @@ mongoose.connect('mongodb://c2lab:e5GLCyghJCkpph2C@ds161495.mlab.com:61495/c2lab
 const app = feathers();
 
 app.use(require('compression')())
-	 .options('*', cors())
-	 .use(cors)
+	 // .options('*', cors())
+	 // .use(cors)
    .use(bodyParser.json())
    .use(bodyParser.urlencoded({ extended: true }));
 
@@ -50,22 +48,23 @@ app.configure(hooks())
 
 //TODO: falta autenticacion y verificar solo privado, whitelist, etc.
 //app.use('/sketches/showcase', feathers.static(path.join(__dirname, '../../sketches-showcase')));
-app.use('/sketches/:id/preview', {
-		create(data, params) {
-			return SbtService.compile(params.id, data.code)
-			.then((x) => ({ code: x }));
-			//.then((code) => sketchesShowcase.create({uri: dauria.getBase64DataURI(new Buffer(code), 'text/html')}));
-		}
-	}
-);
+// app.use('/sketches/:id/preview', {
+// 		create(data, params) {
+// 			return SbtService.compile(params.id, data.code)
+// 			.then((x) => ({ code: x }));
+// 			//.then((code) => sketchesShowcase.create({uri: dauria.getBase64DataURI(new Buffer(code), 'text/html')}));
+// 		}
+// 	}
+// );
 
+app.route('/healthcheck').get((req, res) => res.send('OK'));
 app.use('/sketches', MongoService({Model: Sketch}));
 app.use('/likes', MongoService({Model: Like}));
 app.use('/followers', MongoService({Model: Follower}));
 
-//app.service('/sketches').hooks({
-//	after: SketchesHooksAfter
-//});
+app.service('/sketches').hooks({
+	after: SketchesHooksAfter
+});
 
 /*
 app.use('/ensime', {
@@ -138,4 +137,5 @@ app.use('/ensime', {
 // });
 
 // Start the server
+
 app.listen(3000);

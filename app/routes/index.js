@@ -3,6 +3,7 @@ const rest = require('feathers-rest');
 // const socketio = require('feathers-socketio');
 const hooks = require('feathers-hooks');
 const authentication = require('feathers-authentication');
+const authHooks = require('feathers-authentication-hooks');
 const local = require('feathers-authentication-local');
 const bodyParser = require('body-parser');
 const handler = require('feathers-errors/handler');
@@ -14,7 +15,8 @@ const Bluebird = require('bluebird');
 const path = require('path');
 const fs = require('fs');
 const dauria = require('dauria');
-// const _ = require('lodash');
+ const _ = require('lodash');
+const jwt = require('feathers-authentication-jwt');
 const mongoose = require('mongoose');
 const MongoService = require('feathers-mongoose');
 const SketchesHooksAfter = require('../controllers/SketchesHookAfter');
@@ -43,8 +45,22 @@ app.use(require('compression')())
 
 app.configure(hooks())
    .configure(rest())
+	 .configure(authentication({
+		  secret: 'Vci21We9NLlEGJXTrL2KnP9_Ngc2krwXZK3vp8w5ouM9sIw-RRpuG-jeTMyE0pJP'
+		}
+	 ))
+	 .configure(jwt(
+	  	{
+		//  secret: 'Vci21We9NLlEGJXTrL2KnP9_Ngc2krwXZK3vp8w5ouM9sIw-RRpuG-jeTMyE0pJP',
+		//  // Validate the audience and the issuer
+		  audience: 'VUs3zBHunPr1YqUooaqN0D1g9IaACyoH',
+		  issuer: 'https://c2lab.auth0.com'
+	  }
+	 ))
+		.use('/users', require('feathers-memory')())
    .use(handler())
    .use(errorHandler());
+
 
 //TODO: falta autenticacion y verificar solo privado, whitelist, etc.
 //app.use('/sketches/showcase', feathers.static(path.join(__dirname, '../../sketches-showcase')));
@@ -57,10 +73,54 @@ app.configure(hooks())
 // 	}
 // );
 
-app.route('/healthcheck').get((req, res) => res.send('OK'));
+// const hooks = require('feathers-authentication-hooks');
+//
+// app.service('messages').before({
+// 	all: [
+// 		hooks.restrictToOwner({ idField: 'id', ownerField: 'sentBy' })
+// 	]
+// });
+
+app.use('/healthcheck', {
+	find(){
+		return Bluebird.resolve('OK')
+	}
+});
+
+const authenticate = [authentication.hooks.authenticate('jwt'), (hook) => {hook.params.user._id = hook.params.payload.sub}];
+
 app.use('/sketches', MongoService({Model: Sketch}));
+app.service('/sketches').hooks({
+	before: {
+		find: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'owner' })),
+		get: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'owner' })),
+		create: _.concat(authenticate, authHooks.associateCurrentUser({ as: 'owner' })),
+		update: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'owner' })),
+		patch: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'owner' }))
+	}
+});
+
 app.use('/likes', MongoService({Model: Like}));
+app.service('/likes').hooks({
+	before: {
+		find: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'liker_id' })),
+		get: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'liker_id' })),
+		create: _.concat(authenticate, authHooks.associateCurrentUser({ as: 'liker_id' })),
+		update: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'liker_id' })),
+		patch: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'liker_id' }))
+	}
+});
+
 app.use('/followers', MongoService({Model: Follower}));
+app.service('/followers').hooks({
+	before: {
+		find: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'follower_id' })),
+		get: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'follower_id' })),
+		create: _.concat(authenticate, authHooks.associateCurrentUser({ as: 'follower_id' })),
+		update: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'follower_id' })),
+		patch: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'follower_id' }))
+	}
+});
 
 app.service('/sketches').hooks({
 	after: SketchesHooksAfter
@@ -138,4 +198,8 @@ app.use('/ensime', {
 
 // Start the server
 
-app.listen(3000);
+const server = app.listen(3000);
+
+server.on('listening', function() {
+	console.log(`Feathers application started on localhost:3000`);
+});

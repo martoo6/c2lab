@@ -93,7 +93,7 @@ class SbtService {
 					}).spread((index, c2lab, jsdeps, sketch) => {
 						return index.replace('c2lab', c2lab)
 							.replace('jsdeps', jsdeps)
-							.replace('sketch', sketch);
+							.replace('fastopt', sketch);
 					}) //Could upload to S3 or any static server service and return URL o return compiled code here
 						.tap(() => console.log(`${id} was compiled succesfully !`));
 				})

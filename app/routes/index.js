@@ -42,7 +42,7 @@ const app = feathers();
 
 app.use(require('compression')())
 	 // .options('*', cors())
-	 // .use(cors)
+    .use(cors())
    .use(bodyParser.json())
    .use(bodyParser.urlencoded({ extended: true }));
 

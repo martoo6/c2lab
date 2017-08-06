@@ -41,8 +41,7 @@ mongoose.connect('mongodb://c2lab:e5GLCyghJCkpph2C@ds161495.mlab.com:61495/c2lab
 const app = feathers();
 
 app.use(require('compression')())
-	 // .options('*', cors())
-    .use(cors())
+   .use(cors())
    .use(bodyParser.json())
    .use(bodyParser.urlencoded({ extended: true }));
 
@@ -64,13 +63,12 @@ app.configure(hooks())
 
 
 //TODO: falta autenticacion y verificar solo privado, whitelist, etc.
-//app.use('/sketches/showcase', feathers.static(path.join(__dirname, '../../sketches-showcase')));
+app.use('/sketches/showcase', feathers.static(path.join(__dirname, '../../sketches-showcase')));
 
 app.use('/sketches/:id/preview', {
 		create(data, params) {
 			return SbtService.compile(params.id, data.code)
-			.then((x) => ({ code: x }));
-			//.then((code) => sketchesShowcase.create({uri: dauria.getBase64DataURI(new Buffer(code), 'text/html')}));
+				.then((code) => ({ code }));
 		}
 	}
 );

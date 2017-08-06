@@ -19,6 +19,7 @@ let compilationResult;
 
 Bluebird.promisifyAll(fs);
 
+const sketchTemplateP = fs.readFileAsync(`sbt-projects/SketchTemplate/src/main/scala/ThreeJSApp.scala`, 'utf8');
 const PQueue = require('p-queue');
 const queue = new PQueue({concurrency: 1});
 
@@ -73,9 +74,9 @@ class SbtService {
 		//TODO: redis check, in that case ask remote server to finish job, redirect or something
 		return Bluebird.resolve(processToSketchMap[id] || SbtService.create(id)).then((slot) => {
 			const sketchSlot = 'sketch0' + slot;
-			return fs.readFileAsync(`sbt-projects/sketch0${slot}/src/main/scala/ThreeJSApp.scala`, 'utf8')
+			return sketchTemplateP
 				.then((codeTemplate) => codeTemplate.replace('[code]', code))
-				.then((newCode) => fs.writeFileAsync(`sbt-projects/sketch0${slot}/src/main/scala/ThreeJSApp.scala`, newCode,'utf8'))
+				.then((newCode) => fs.writeFileAsync(`sbt-projects/sketch0${slot}/src/main/scala/ThreeJSApp.scala`, newCode, 'utf8'))
 				.then(() => {
 					return Bluebird.resolve(queue.add(() => new Bluebird((resolve, reject) => {
 						currentResolve = resolve;

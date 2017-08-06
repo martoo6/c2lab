@@ -7,7 +7,6 @@ import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
   * Created by martin on 15/12/15.
   */
 
-@JSExportTopLevel("App")
 object App extends JSApp{
 
   override def main(): Unit = {

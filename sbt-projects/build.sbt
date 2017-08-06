@@ -1,11 +1,11 @@
 
-libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.2"
+libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.3"
 
 
 lazy val commonSettings = Seq(
   organization := "com.example",
   version := "0.1.0-SNAPSHOT",
-  scalaVersion := "2.12.2",
+  scalaVersion := "2.12.3",
   skip in packageJSDependencies := true,
   unmanagedBase := baseDirectory.value / "../lib",
   scalaJSUseMainModuleInitializer := true,

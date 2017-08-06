@@ -56,7 +56,7 @@ app.configure(hooks())
 	  	{
 		//  // Validate the audience and the issuer
 		  audience: 'VUs3zBHunPr1YqUooaqN0D1g9IaACyoH',
-		  issuer: 'https://c2lab.auth0.com'
+		  issuer: 'https://c2lab.auth0.com/'
 	  }
 	 ))
    .use(handler())

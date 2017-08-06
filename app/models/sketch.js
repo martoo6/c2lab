@@ -7,8 +7,8 @@ const sketchSchema = new Schema({
 	tags: { type: [String], default: [] },
 	owner: { type: String },
 	thumbnails: { type: [String], default: [] },
-	is_public: { type: [String], default: true },
-	published_url: { type: [String] }
+	is_public: { type: String, default: true },
+	published_url: { type: String }
 }, { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at'}});
 
 const Sketch = mongoose.model('Sketch', sketchSchema);

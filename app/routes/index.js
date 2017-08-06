@@ -31,7 +31,7 @@ const errorHandler = require('feathers-errors/handler');
 
 //TODO: MOVE TO CONFIG, USE .ENV
 mongoose.Promise = Bluebird;
-mongoose.connect('mongodb://c2lab:e5GLCyghJCkpph2C@ds161495.mlab.com:61495/c2lab', {promiseLibrary: Bluebird});
+mongoose.connect('mongodb://c2lab:e5GLCyghJCkpph2C@ds161495.mlab.com:61495/c2lab', {useMongoClient: true, promiseLibrary: Bluebird});
 
 
 

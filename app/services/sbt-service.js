@@ -23,7 +23,7 @@ const PQueue = require('p-queue');
 const queue = new PQueue({concurrency: 1});
 
 function startSbt() {
-	sbtProc = spawn("sbt", [],{cwd: path.resolve('sbt-projects')});
+	sbtProc = spawn(`${path.resolve(".")}/sbt`, [],{cwd: path.resolve('sbt-projects')});
 	//sbtPid = sbtProc.pid;
 	sbtProc.stdin.setEncoding('utf-8');
 

@@ -23,6 +23,7 @@ const SketchesHooksAfter = require('../controllers/SketchesHookAfter');
 const Sketch = require('../models/sketch');
 const Like = require('../models/like');
 const Follower = require('../models/follower');
+const User = require('../models/user');
 const SbtService = require('../services/sbt-service');
 // const sketchesShowcase = require('../services/sketches-showcase');
 
@@ -56,7 +57,6 @@ app.configure(hooks())
 		  issuer: 'https://c2lab.auth0.com'
 	  }
 	 ))
-		.use('/users', require('feathers-memory')())
    .use(handler())
    .use(errorHandler());
 
@@ -124,6 +124,17 @@ app.service('/followers').hooks({
 
 app.service('/sketches').hooks({
 	after: SketchesHooksAfter
+});
+
+app.use('/users', MongoService({Model: User}));
+app.service('/users').hooks({
+	before: {
+		find: authenticate,
+		get: authenticate,
+		create: authenticate,
+		update: authenticate,
+		patch: authenticate
+	}
 });
 
 /*

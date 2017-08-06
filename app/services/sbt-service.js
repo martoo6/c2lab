@@ -36,8 +36,8 @@ function startSbt() {
 		.on('line', (data) => {
 			console.log(`[SBT] - stdout: ${data}`);
 			//CHECK FOR SUCCESS OR ERROR !
+			//TODO: Awfull mutable state
 			compilationResult+= data + '\n';
-			console.log(stripAnsi(data).match(/\[success\] Total time: \d* s, completed/));
 			if (stripAnsi(data).match(/\[success\] Total time: \d* s, completed/)) {
 				currentResolve(compilationResult); //TODO: grab actual compilation result
 			} else if (stripAnsi(data).match(/\[error\] Total time: \d* s, completed/)) {

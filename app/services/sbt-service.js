@@ -54,7 +54,7 @@ function startSbt() {
 	});
 }
 
-//startSbt();
+startSbt();
 
 class SbtService {
 	static create(id){

@@ -23,7 +23,7 @@ const SketchesHooksAfter = require('../controllers/SketchesHookAfter');
 const Sketch = require('../models/sketch');
 const Like = require('../models/like');
 const Follower = require('../models/follower');
-// const SbtService = require('../services/sbt-service');
+const SbtService = require('../services/sbt-service');
 // const sketchesShowcase = require('../services/sketches-showcase');
 
 const errorHandler = require('feathers-errors/handler');
@@ -51,7 +51,6 @@ app.configure(hooks())
 	 ))
 	 .configure(jwt(
 	  	{
-		//  secret: 'Vci21We9NLlEGJXTrL2KnP9_Ngc2krwXZK3vp8w5ouM9sIw-RRpuG-jeTMyE0pJP',
 		//  // Validate the audience and the issuer
 		  audience: 'VUs3zBHunPr1YqUooaqN0D1g9IaACyoH',
 		  issuer: 'https://c2lab.auth0.com'
@@ -64,14 +63,15 @@ app.configure(hooks())
 
 //TODO: falta autenticacion y verificar solo privado, whitelist, etc.
 //app.use('/sketches/showcase', feathers.static(path.join(__dirname, '../../sketches-showcase')));
-// app.use('/sketches/:id/preview', {
-// 		create(data, params) {
-// 			return SbtService.compile(params.id, data.code)
-// 			.then((x) => ({ code: x }));
-// 			//.then((code) => sketchesShowcase.create({uri: dauria.getBase64DataURI(new Buffer(code), 'text/html')}));
-// 		}
-// 	}
-// );
+
+app.use('/sketches/:id/preview', {
+		create(data, params) {
+			return SbtService.compile(params.id, data.code)
+			.then((x) => ({ code: x }));
+			//.then((code) => sketchesShowcase.create({uri: dauria.getBase64DataURI(new Buffer(code), 'text/html')}));
+		}
+	}
+);
 
 // const hooks = require('feathers-authentication-hooks');
 //

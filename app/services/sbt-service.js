@@ -25,9 +25,11 @@ const queue = new PQueue({concurrency: 1});
 
 function startSbt() {
 	const cp = path.resolve(".");
-	const params = ['-sbt-launch-dir', `${cp}/.sbt/launchers`, '-sbt-version', "0.13.16"];
+	const params = ['-sbt-version', "0.13.16"];
 	console.log(`${process.env.OPENSHIFT_DATA_DIR}/jdk`);
 	if (process.env.OPENSHIFT_DATA_DIR) {
+		params.push('-sbt-launch-dir');
+		params.push(`${process.env.OPENSHIFT_DATA_DIR}/.sbt/launchers`);
 		params.push('-java-home');
 		params.push(`${process.env.OPENSHIFT_DATA_DIR}/jdk`);
 	}

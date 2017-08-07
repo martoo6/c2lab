@@ -9,7 +9,7 @@ curl -Ls https://git.io/sbt > sbt && chmod 0755 sbt
 #    fi
 #fi
 
-mkdir -p .sbt/launchers
-mkdir -p .sbt/0.13.16
-mkdir -p .sbt/boot
-mkdir -p .ivy
+#mkdir -p .sbt/launchers
+#mkdir -p .sbt/0.13.16
+#mkdir -p .sbt/boot
+#mkdir -p .ivy

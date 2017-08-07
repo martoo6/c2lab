@@ -23,7 +23,8 @@
     "npm": ">= 1.0.0"
   },
   "scripts": {
-    "postinstall": "curl -Ls https://git.io/sbt > sbt && chmod 0755 sbt"
+    "postinstall": "curl -Ls https://git.io/sbt > sbt && chmod 0755 sbt",
+    "start": "node app/routes/index.js"
   },
   "dependencies": {
     "bluebird": "3.5.0",
@@ -67,5 +68,5 @@
   },
   "bundleDependencies": [],
   "private": true,
-  "main": "server.js"
+  "main": "./app/routes/index.js"
 }

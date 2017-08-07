@@ -25,7 +25,13 @@ const queue = new PQueue({concurrency: 1});
 
 function startSbt() {
 	const cp = path.resolve(".");
-	sbtProc = spawn(`${cp}/sbt`, ['-sbt-launch-dir', `${cp}/.sbt/launchers`, '-sbt-version', "0.13.16", '-java-home', `${cp}/jdk`], {cwd: path.resolve('sbt-projects')});
+	const params = ['-sbt-launch-dir', `${cp}/.sbt/launchers`, '-sbt-version', "0.13.16"];
+	console.log(`${process.env.OPENSHIFT_DATA_DIR}/jdk`);
+	if (process.env.OPENSHIFT_DATA_DIR) {
+		params.push('-java-home');
+		params.push(`${cp}/jdk`);
+	}
+	sbtProc = spawn(`${cp}/sbt`, params, {cwd: path.resolve('sbt-projects')});
 	sbtProc.stdin.setEncoding('utf-8');
 
 	readline.createInterface({

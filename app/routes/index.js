@@ -28,6 +28,7 @@ const SbtService = require('../services/sbt-service');
 // const sketchesShowcase = require('../services/sketches-showcase');
 
 const errorHandler = require('feathers-errors/handler');
+require('dotenv').config();
 
 //TODO: MOVE TO CONFIG, USE .ENV
 mongoose.Promise = Bluebird;

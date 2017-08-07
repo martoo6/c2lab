@@ -27,13 +27,13 @@ function startSbt() {
 	const cp = path.resolve(".");
 	const params = ['-sbt-version', "0.13.16"];
 	if (process.env.OPENSHIFT_DATA_DIR) {
-		console.log(`Using openshift data_ dir: ${process.env.OPENSHIFT_DATA_DIR}`);
+		console.log(`Using openshift data dir: ${process.env.OPENSHIFT_DATA_DIR}`);
 		params.push('-sbt-launch-dir');
-		console.log(`${process.env.OPENSHIFT_DATA_DIR}.sbt/launchers/`);
-		params.push(`${process.env.OPENSHIFT_DATA_DIR}.sbt/launchers/`);
-		params.push('-java-home');
-		console.log(`${process.env.OPENSHIFT_DATA_DIR}jdk/`);
-		params.push(`${process.env.OPENSHIFT_DATA_DIR}jdk/`);
+		console.log(`${process.env.OPENSHIFT_DATA_DIR}.sbt/launchers`);
+		params.push(`${process.env.OPENSHIFT_DATA_DIR}.sbt/launchers`);
+		// params.push('-java-home');
+		// console.log(`${process.env.OPENSHIFT_DATA_DIR}jdk`);
+		// params.push(`${process.env.OPENSHIFT_DATA_DIR}jdk`);
 	}
 	console.log(params);
 	sbtProc = spawn(`${cp}/sbt`, params, {cwd: path.resolve('sbt-projects')});

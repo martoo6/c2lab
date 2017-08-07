@@ -1,6 +1,8 @@
 #!/bin/bash
 curl -Ls https://git.io/sbt > sbt && chmod 0755 sbt
 
+printenv
+
 echo "Checking if we are in openshift"
 if [ -z "$OPENSHIFT_DATA_DIR" ]; then
     echo "Checking if $OPENSHIFT_DATA_DIR/jdk exists"

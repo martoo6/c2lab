@@ -70,15 +70,6 @@ app.configure(hooks())
 //TODO: falta autenticacion y verificar solo privado, whitelist, etc.
 app.use('/sketches/showcase', feathers.static(path.join(__dirname, '../../sketches-showcase')));
 
-app.use('/sketches/preview', {
-		create(data, params) {
-			console.log(params);
-			return SbtService.compile(params.user._id, data.code)
-				.then((code) => ({ code }));
-		}
-	}
-);
-
 // const hooks = require('feathers-authentication-hooks');
 //
 // app.service('messages').before({
@@ -94,6 +85,20 @@ app.use('/healthcheck', {
 });
 
 const authenticate = [authentication.hooks.authenticate('jwt'), (hook) => {hook.params.user._id = hook.params.payload.sub}];
+
+app.use('/sketches/preview', {
+		create(data, params) {
+			console.log(params);
+			return SbtService.compile(params.user._id, data.code)
+				.then((code) => ({ code }));
+		}
+	}
+);
+app.service('/sketches/preview').hooks({
+	before: {
+		create: authenticate
+	}
+});
 
 app.use('/sketches', MongoService({Model: Sketch}));
 app.service('/sketches').hooks({

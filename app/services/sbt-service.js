@@ -29,11 +29,11 @@ function startSbt() {
 	if (process.env.OPENSHIFT_DATA_DIR) {
 		console.log(`Using openshift data_ dir: ${process.env.OPENSHIFT_DATA_DIR}`);
 		params.push('-sbt-launch-dir');
-		console.log(`${process.env.OPENSHIFT_DATA_DIR}.sbt/launchers`);
-		params.push(`${process.env.OPENSHIFT_DATA_DIR}.sbt/launchers`);
+		console.log(`${process.env.OPENSHIFT_DATA_DIR}.sbt/launchers/`);
+		params.push(`${process.env.OPENSHIFT_DATA_DIR}.sbt/launchers/`);
 		params.push('-java-home');
-		console.log(`${process.env.OPENSHIFT_DATA_DIR}jdk`);
-		params.push(`${process.env.OPENSHIFT_DATA_DIR}jdk`);
+		console.log(`${process.env.OPENSHIFT_DATA_DIR}jdk/`);
+		params.push(`${process.env.OPENSHIFT_DATA_DIR}jdk/`);
 	}
 	sbtProc = spawn(`${cp}/sbt`, params, {cwd: path.resolve('sbt-projects')});
 	sbtProc.stdin.setEncoding('utf-8');

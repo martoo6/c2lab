@@ -65,7 +65,6 @@ function startSbt() {
 		terminal  : false
 	}).on('line', (data) => {
 		console.log(`[SBT] - stderr: ${data}`);
-		//STD ERR ?
 	});
 }
 

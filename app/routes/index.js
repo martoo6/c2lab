@@ -70,9 +70,10 @@ app.configure(hooks())
 //TODO: falta autenticacion y verificar solo privado, whitelist, etc.
 app.use('/sketches/showcase', feathers.static(path.join(__dirname, '../../sketches-showcase')));
 
-app.use('/sketches/:id/preview', {
+app.use('/sketches/preview', {
 		create(data, params) {
-			return SbtService.compile(params.id, data.code)
+			console.log(params);
+			return SbtService.compile(params.user._id, data.code)
 				.then((code) => ({ code }));
 		}
 	}

@@ -29,19 +29,14 @@ function startSbt() {
 	if (process.env.OPENSHIFT_DATA_DIR) {
 		console.log(`Using openshift data dir: ${process.env.OPENSHIFT_DATA_DIR}`);
 		params.push('-sbt-launch-dir');
-		console.log(`${process.env.OPENSHIFT_DATA_DIR}.sbt/launchers`);
 		params.push(`${process.env.OPENSHIFT_DATA_DIR}.sbt/launchers`);
 		params.push('-java-home');
-		console.log(`${process.env.OPENSHIFT_DATA_DIR}jdk`);
 		params.push(`${process.env.OPENSHIFT_DATA_DIR}jdk`);
 		params.push('-ivy');
-		console.log(`${process.env.OPENSHIFT_DATA_DIR}.ivy`);
 		params.push(`${process.env.OPENSHIFT_DATA_DIR}.ivy`);
 		params.push('-sbt-boot');
-		console.log(`${process.env.OPENSHIFT_DATA_DIR}.sbt/boot`);
 		params.push(`${process.env.OPENSHIFT_DATA_DIR}.sbt/boot`);
 		params.push('-sbt-dir');
-		console.log(`${process.env.OPENSHIFT_DATA_DIR}.sbt/0.13.16`);
 		params.push(`${process.env.OPENSHIFT_DATA_DIR}.sbt/0.13.16`);
 
 	}

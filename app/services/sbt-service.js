@@ -35,6 +35,7 @@ function startSbt() {
 		console.log(`${process.env.OPENSHIFT_DATA_DIR}jdk/`);
 		params.push(`${process.env.OPENSHIFT_DATA_DIR}jdk/`);
 	}
+	console.log(params);
 	sbtProc = spawn(`${cp}/sbt`, params, {cwd: path.resolve('sbt-projects')});
 	sbtProc.stdin.setEncoding('utf-8');
 

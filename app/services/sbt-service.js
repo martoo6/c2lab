@@ -31,9 +31,19 @@ function startSbt() {
 		params.push('-sbt-launch-dir');
 		console.log(`${process.env.OPENSHIFT_DATA_DIR}.sbt/launchers`);
 		params.push(`${process.env.OPENSHIFT_DATA_DIR}.sbt/launchers`);
-		// params.push('-java-home');
-		// console.log(`${process.env.OPENSHIFT_DATA_DIR}jdk`);
-		// params.push(`${process.env.OPENSHIFT_DATA_DIR}jdk`);
+		params.push('-java-home');
+		console.log(`${process.env.OPENSHIFT_DATA_DIR}jdk`);
+		params.push(`${process.env.OPENSHIFT_DATA_DIR}jdk`);
+		params.push('-ivy');
+		console.log(`${process.env.OPENSHIFT_DATA_DIR}.ivy`);
+		params.push(`${process.env.OPENSHIFT_DATA_DIR}.ivy`);
+		params.push('-sbt-boot');
+		console.log(`${process.env.OPENSHIFT_DATA_DIR}.sbt/boot`);
+		params.push(`${process.env.OPENSHIFT_DATA_DIR}.sbt/boot`);
+		params.push('-sbt-dir');
+		console.log(`${process.env.OPENSHIFT_DATA_DIR}.sbt/0.13.16`);
+		params.push(`${process.env.OPENSHIFT_DATA_DIR}.sbt/0.13.16`);
+
 	}
 	console.log(params);
 	sbtProc = spawn(`${cp}/sbt`, params, {cwd: path.resolve('sbt-projects')});

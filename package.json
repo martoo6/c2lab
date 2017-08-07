@@ -23,7 +23,7 @@
     "npm": ">= 1.0.0"
   },
   "scripts": {
-    "postinstall": "curl -Ls https://git.io/sbt > sbt && chmod 0755 sbt",
+    "postinstall": "./postinstall.sh",
     "start": "node app/routes/index.js"
   },
   "dependencies": {

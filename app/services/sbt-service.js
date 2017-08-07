@@ -24,7 +24,9 @@ const PQueue = require('p-queue');
 const queue = new PQueue({concurrency: 1});
 
 function startSbt() {
-	sbtProc = spawn(`${path.resolve(".")}/sbt`, [],{cwd: path.resolve('sbt-projects')});
+	const cp = path.resolve(".");
+	//sbtProc = spawn(`${cp}/sbt -sbt-launch-dir "${cp}/.sbt/launchers" -sbt-version "0.13.16" -java-home "${cp}/jdk"`, [],{cwd: path.resolve('sbt-projects')});
+	sbtProc = spawn(`${cp}/sbt`, ['-sbt-launch-dir', `${cp}/.sbt/launchers`, '-sbt-version', "0.13.16", '-java-home', `${cp}/jdk`], {cwd: path.resolve('sbt-projects')});
 	//sbtPid = sbtProc.pid;
 	sbtProc.stdin.setEncoding('utf-8');
 

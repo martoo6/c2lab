@@ -214,6 +214,6 @@ app.use('/ensime', {
 // Start the server
 const server = app.listen(process.env.OPENSHIFT_NODEJS_PORT || 3000, process.env.OPENSHIFT_NODEJS_IP || 'localhost');
 
-server.on('listening', function() {
-	console.log(`Feathers application started on localhost:3000`);
+server.on('listening', () => {
+	console.log(`Feathers application started on ${process.env.OPENSHIFT_NODEJS_IP || 'localhost'}:${process.env.OPENSHIFT_NODEJS_PORT || 3000}`);
 });

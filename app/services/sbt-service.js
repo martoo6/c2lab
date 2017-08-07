@@ -28,8 +28,6 @@ function startSbt() {
 	sbtProc = spawn(`${cp}/sbt`, ['-sbt-launch-dir', `${cp}/.sbt/launchers`, '-sbt-version', "0.13.16", '-java-home', `${cp}/jdk`], {cwd: path.resolve('sbt-projects')});
 	sbtProc.stdin.setEncoding('utf-8');
 
-	//sbtProc.stdout.addListener('data', () => )
-
 	readline.createInterface({
 		input     : sbtProc.stdout,
 		terminal  : false

@@ -45,17 +45,21 @@ app.use(require('compression')())
    .use(bodyParser.json())
    .use(bodyParser.urlencoded({ extended: true }));
 
+console.log(path.resolve('./c2lab.pem'));
+// console.log(fs.readFile());
+
 app.configure(hooks())
    .configure(rest())
 	 .configure(authentication({
-		  secret: 'Vci21We9NLlEGJXTrL2KnP9_Ngc2krwXZK3vp8w5ouM9sIw-RRpuG-jeTMyE0pJP'
+		  secret: Buffer.from(fs.readFileSync(path.resolve('c2lab.pem'), 'utf8'))
 		}
 	 ))
 	 .configure(jwt(
 	  	{
 		//  // Validate the audience and the issuer
 		  audience: 'VUs3zBHunPr1YqUooaqN0D1g9IaACyoH',
-		  issuer: 'https://c2lab.auth0.com/'
+		  issuer: 'https://c2lab.auth0.com/',
+			algorithms: ['RS256', 'HS256']
 	  }
 	 ))
    .use(handler())

@@ -13,14 +13,14 @@ const _ = require('lodash');
 
 const SketchesHooksAfter = {
 	create(hook) {
-		SbtService.compile(hook.params.user._id, hook.result.code)
+		SbtService.compile(hook.params.user._id, hook.result.code, SbtService.mode.FULL)
 			.then((code) => sketchesShowcase.create({id: `${uuidV4()}.html`,  uri: dauria.getBase64DataURI(new Buffer(code), 'text/html')}))
 			.then((showcase) =>  Sketch.update({_id: hook.result._id}, {$set: {published_id: showcase.id}}).exec());
 		return Promise.resolve(hook);
 	},
 
 	update(hook) {
-		SbtService.compile(hook.params.user._id, hook.result.code)
+		SbtService.compile(hook.params.user._id, hook.result.code, SbtService.mode.FULL)
 			.tap(() => sketchesShowcase.remove(hook.result.published_id))
 			.then((code) => sketchesShowcase.create({id: hook.result.published_id,  uri: dauria.getBase64DataURI(new Buffer(code), 'text/html')}));
 		return Promise.resolve(hook);
@@ -29,7 +29,7 @@ const SketchesHooksAfter = {
 	patch(hook) {
 		//TODO: Check if code was mofified
 		if (hook.data.code){
-			SbtService.compile(hook.params.user._id, hook.result.code)
+			SbtService.compile(hook.params.user._id, hook.result.code, SbtService.mode.FULL)
 				.tap(() => sketchesShowcase.remove(hook.result.published_id))
 				.then((code) => sketchesShowcase.create({id: hook.result.published_id,  uri: dauria.getBase64DataURI(new Buffer(code), 'text/html')}));
 		}

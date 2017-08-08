@@ -89,20 +89,20 @@ const getSlot = (id) => {
 };
 
 class SbtService {
-	static compile(id, code, mode){
+	static compile(id, code, mode) {
 		//TODO: redis check, in that case ask remote server to finish job, redirect or something
-		return getSlot(id).then((slot) => {
-			const sketchSlot = 'sketch' + slot.number;
-			return sketchTemplateP
-				.then((codeTemplate) => codeTemplate.replace('[code]', code))
-				.then((newCode) => fs.writeFileAsync(`sbt-projects/${sketchSlot}/src/main/scala/ThreeJSApp.scala`, newCode, 'utf8'))
-				.then(() => {
-					return Bluebird.resolve(queue.add(() => new Bluebird((resolve, reject) => {
+		return Bluebird.resolve(queue.add(() => {
+			return getSlot(id).then((slot) => {
+				const sketchSlot = 'sketch' + slot.number;
+				return sketchTemplateP
+					.then((codeTemplate) => codeTemplate.replace('[code]', code))
+					.then((newCode) => fs.writeFileAsync(`sbt-projects/${sketchSlot}/src/main/scala/ThreeJSApp.scala`, newCode, 'utf8'))
+					.then(() => new Bluebird((resolve, reject) => {
 						currentResolve = resolve;
 						currentReject = reject;
 						compilationResult = '';
 						sbtProc.stdin.write(sketchSlot + `/${mode || 'fastOptJS'}\n`);
-					}))).then(() => {
+					})).then(() => {
 						return Bluebird.all([
 							fs.readFileAsync('sbt-projects/index.html', 'utf8'),
 							fs.readFileAsync('sbt-projects/lib/c2lab-opt.js', 'utf8'),
@@ -114,10 +114,10 @@ class SbtService {
 							.replace('jsdeps', jsdeps)
 							.replace('fastopt', sketch);
 					}) //Could upload to S3 or any static server service and return URL o return compiled code here
-						.tap(() => slot.lock = false)
-						.tap(() => console.log(`${id} was compiled succesfully !`));
-				})
-		});
+					.tap(() => slot.lock = false)
+					.tap(() => console.log(`${id} was compiled succesfully !`));
+			})
+		}));
 	}
 }
 

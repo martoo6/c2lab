@@ -89,7 +89,7 @@ const authenticate = [authentication.hooks.authenticate('jwt'), (hook) => {hook.
 app.use('/sketches/preview', {
 		create(data, params) {
 			console.log(params);
-			return SbtService.compile(params.user._id, data.code)
+			return SbtService.compile(params.user._id, data.code, SbtService.mode.FULL)
 				.then((code) => ({ code }));
 		}
 	}

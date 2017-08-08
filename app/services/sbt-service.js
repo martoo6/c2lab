@@ -26,20 +26,6 @@ const queue = new PQueue({concurrency: 1});
 function startSbt() {
 	const cp = path.resolve(".");
 	const params = ['-sbt-version', "0.13.16"];
-	if (process.env.OPENSHIFT_DATA_DIR) {
-		console.log(`Using openshift data dir: ${process.env.OPENSHIFT_DATA_DIR}`);
-		params.push('-sbt-launch-dir');
-		params.push(`${process.env.OPENSHIFT_DATA_DIR}.sbt/launchers`);
-		params.push('-java-home');
-		params.push(`${process.env.OPENSHIFT_DATA_DIR}jdk`);
-		params.push('-ivy');
-		params.push(`${process.env.OPENSHIFT_DATA_DIR}.ivy`);
-		params.push('-sbt-boot');
-		params.push(`${process.env.OPENSHIFT_DATA_DIR}.sbt/boot`);
-		params.push('-sbt-dir');
-		params.push(`${process.env.OPENSHIFT_DATA_DIR}.sbt/0.13.16`);
-
-	}
 	console.log(params);
 	sbtProc = spawn(`${cp}/sbt`, params, {cwd: path.resolve('sbt-projects')});
 	sbtProc.stdin.setEncoding('utf-8');

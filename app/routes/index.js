@@ -97,8 +97,8 @@ app.service('/sketches/preview').hooks({
 app.use('/sketches', MongoService({Model: Sketch}));
 app.service('/sketches').hooks({
 	before: {
-		find: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'owner' })),
-		get: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'owner' })),
+		find: authenticate,
+		get: authenticate,
 		create: _.concat(authenticate, authHooks.associateCurrentUser({ as: 'owner' })),
 		update: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'owner' })),
 		patch: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'owner' }))
@@ -145,6 +145,17 @@ const hideUserData = (hook) => {
 	const user = hook.result;
 	hook.result = user.user_id === currentUser ? _.omit(user, '_id') : _.pick(user, ['user_id', 'nickname']);
 };
+
+app.use('/users/me', {
+	find(params){
+		return User.findOne({user_id: params.user._id}).exec();
+	}
+});
+app.service('/users/me').hooks({
+	before: {
+		find: authenticate
+	}
+});
 
 //TODO: Should allow patch for nickname and profile picture change, get is not working yet (and the ID should be the user_id when searching)
 app.use('/users', MongoService({Model: User}));

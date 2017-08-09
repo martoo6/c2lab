@@ -2,6 +2,7 @@ const feathers = require('feathers');
 const rest = require('feathers-rest');
 // const socketio = require('feathers-socketio');
 const hooks = require('feathers-hooks');
+const commonHooks = require('feathers-hooks-common');
 const authentication = require('feathers-authentication');
 const authHooks = require('feathers-authentication-hooks');
 const local = require('feathers-authentication-local');
@@ -70,14 +71,6 @@ app.configure(hooks())
 //TODO: falta autenticacion y verificar solo privado, whitelist, etc.
 app.use('/sketches/showcase', feathers.static(path.join(__dirname, '../../sketches-showcase')));
 
-// const hooks = require('feathers-authentication-hooks');
-//
-// app.service('messages').before({
-// 	all: [
-// 		hooks.restrictToOwner({ idField: 'id', ownerField: 'sentBy' })
-// 	]
-// });
-
 app.use('/healthcheck', {
 	find(){
 		return Bluebird.resolve('OK')
@@ -100,6 +93,7 @@ app.service('/sketches/preview').hooks({
 	}
 });
 
+//TODO: This configuration does not allow for generic sketch searches, any sketch should be avilable but the query should have extra restriction by public id
 app.use('/sketches', MongoService({Model: Sketch}));
 app.service('/sketches').hooks({
 	before: {
@@ -111,22 +105,24 @@ app.service('/sketches').hooks({
 	}
 });
 
+//TODO: this does not allow to see likes in other sketches that are not mine
 app.use('/likes', MongoService({Model: Like}));
 app.service('/likes').hooks({
 	before: {
-		find: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'liker_id' })),
-		get: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'liker_id' })),
+		find: authenticate,
+		get: authenticate,
 		create: _.concat(authenticate, authHooks.associateCurrentUser({ as: 'liker_id' })),
 		update: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'liker_id' })),
 		patch: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'liker_id' }))
 	}
 });
 
+//TODO: With this restrictoin i can not see things that do not belong to me.
 app.use('/followers', MongoService({Model: Follower}));
 app.service('/followers').hooks({
 	before: {
-		find: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'follower_id' })),
-		get: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'follower_id' })),
+		find: authenticate,
+		get: authenticate,
 		create: _.concat(authenticate, authHooks.associateCurrentUser({ as: 'follower_id' })),
 		update: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'follower_id' })),
 		patch: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'follower_id' }))
@@ -137,14 +133,32 @@ app.service('/sketches').hooks({
 	after: SketchesHooksAfter
 });
 
+const hideUsersData = (hook) => {
+	console.log(hook);
+	const currentUser = hook.params.user._id;
+	hook.result = hook.result.map((user) => user.user_id === currentUser ? _.omit(user, '_id') : _.pick(user, ['user_id', 'nickname']));
+};
+
+const hideUserData = (hook) => {
+	console.log(hook);
+	const currentUser = hook.params.user._id;
+	const user = hook.result;
+	hook.result = user.user_id === currentUser ? _.omit(user, '_id') : _.pick(user, ['user_id', 'nickname']);
+};
+
+//TODO: Should allow patch for nickname and profile picture change, get is not working yet (and the ID should be the user_id when searching)
 app.use('/users', MongoService({Model: User}));
 app.service('/users').hooks({
 	before: {
 		find: authenticate,
-		get: authenticate,
-		create: authenticate,
-		update: authenticate,
-		patch: authenticate
+		get: [commonHooks.disallow()], //Use find instead of GET as _id can not be mapped to user_id
+		create: [commonHooks.disallow()],
+		update: [commonHooks.disallow()],
+		patch: [commonHooks.disallow()]
+	},
+	after: {
+		find: hideUsersData,
+		get: hideUserData
 	}
 });
 

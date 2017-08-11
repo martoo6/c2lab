@@ -23,6 +23,7 @@ const SketchesHooksAfter = {
 		return Promise.resolve(hook);
 	},
 
+	//Would fail on multiple update ?
 	update(hook) {
 		SbtService.compile(hook.params.user._id, hook.result.code, SbtService.mode.FULL)
 			.then(compress)
@@ -30,6 +31,7 @@ const SketchesHooksAfter = {
 		return Promise.resolve(hook);
 	},
 
+	//Would fail on multiple update ?
 	patch(hook) {
 		if (hook.data.code){
 			SbtService.compile(hook.params.user._id, hook.result.code, SbtService.mode.FULL)

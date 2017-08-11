@@ -1,6 +1,5 @@
 const feathers = require('feathers');
 const rest = require('feathers-rest');
-// const socketio = require('feathers-socketio');
 const hooks = require('feathers-hooks');
 const commonHooks = require('feathers-hooks-common');
 const authentication = require('feathers-authentication');
@@ -8,12 +7,10 @@ const authHooks = require('feathers-authentication-hooks');
 const local = require('feathers-authentication-local');
 const bodyParser = require('body-parser');
 const handler = require('feathers-errors/handler');
-// const ensimeClient = require('ensime-client');
 const cors = require('cors');
 const Bluebird = require('bluebird');
 const path = require('path');
 const fs = require('fs');
-const dauria = require('dauria');
  const _ = require('lodash');
 const jwt = require('feathers-authentication-jwt');
 const mongoose = require('mongoose');
@@ -25,7 +22,7 @@ const Follower = require('../models/follower');
 const User = require('../models/user');
 const SbtService = require('../services/sbt-service');
 const compression = require('compression');
-// const sketchesShowcase = require('../services/sketches-showcase');
+// const ensimeClient = require('ensime-client');
 
 const errorHandler = require('feathers-errors/handler');
 require('dotenv').config();
@@ -88,7 +85,7 @@ Bluebird.promisifyAll(zlib);
 
 app.get('/sketches/showcase/:id', ejwt, (req, res) => {
 	console.log(req.params.id);
-	Sketch.findOne({_id: req.params.id, $or: [{public: true}, {owner: req.user.sub}]}, {showcase: 1}).exec()
+	Sketch.findOne({_id: req.params.id, $or: [{public: true}, {owner: req.user.sub}]}, {showcase: 1}).lean().exec()
 		.then((x) => {
 			if (x === null) {
 				res.status(403).send();
@@ -97,21 +94,17 @@ app.get('/sketches/showcase/:id', ejwt, (req, res) => {
 				// res.notCompress = true;
 				// res.contentType('text/html');
 				// res.set('Content-Encoding', 'gzip');
+				// res.send(x.showcase.toString());
 				return zlib.gunzipAsync(new Buffer(x.showcase, 'base64')).then((x) => res.send(x.toString()));
 			}
 		});
 });
 
-
-
 app.get('/healthcheck', (req, res) =>  res.send('OK'));
-
 
 app.use('/sketches/preview', {
 		create(data, params) {
-			console.log(params);
-			return SbtService.compile(params.user._id, data.code)
-				.then((code) => ({ code }));
+			return SbtService.compile(params.user._id, data.code).then((code) => ({ code }));
 		}
 	}
 );
@@ -121,20 +114,34 @@ app.service('/sketches/preview').hooks({
 	}
 });
 
+const sketchesShownParams = (hook) => {
+	hook.params.query.$select = [
+		'title',
+		'code',
+		'tags',
+		'owner',
+		'thumbnails',
+		'is_public',
+		'created_at',
+		'updated_at'
+	];
+};
+
 //TODO: This configuration does not allow for generic sketch searches, any sketch should be avilable but the query should have extra restriction by public id
-app.use('/sketches', MongoService({Model: Sketch}));
+app.use('/sketches', MongoService({Model: Sketch, paginate: {default: 50, max: 100}}));
 app.service('/sketches').hooks({
 	before: {
-		find: authenticate,
-		get: authenticate,
+		find: _.concat(authenticate, sketchesShownParams),
+		get: _.concat(authenticate, sketchesShownParams),
 		create: _.concat(authenticate, authHooks.associateCurrentUser({ as: 'owner' })),
 		update: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'owner' })),
 		patch: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'owner' }))
-	}
+	},
+	after: SketchesHooksAfter
 });
 
 //TODO: this does not allow to see likes in other sketches that are not mine
-app.use('/likes', MongoService({Model: Like}));
+app.use('/likes', MongoService({Model: Like, paginate: {default: 50, max: 100}}));
 app.service('/likes').hooks({
 	before: {
 		find: authenticate,
@@ -146,7 +153,7 @@ app.service('/likes').hooks({
 });
 
 //TODO: With this restrictoin i can not see things that do not belong to me.
-app.use('/followers', MongoService({Model: Follower}));
+app.use('/followers', MongoService({Model: Follower, paginate: {default: 50, max: 100}}));
 app.service('/followers').hooks({
 	before: {
 		find: authenticate,
@@ -157,43 +164,20 @@ app.service('/followers').hooks({
 	}
 });
 
-const sketchesShownParams = (hook) => {
-	hook.params.query.$select = [
-	'title',
-	'code',
-	'tags',
-	'owner',
-	'thumbnails',
-	'is_public',
-	'created_at',
-	'updated_at'
-	];
-};
-
-app.service('/sketches').hooks({
-	before: {
-		get: sketchesShownParams,
-		find: sketchesShownParams
-	},
-	after: SketchesHooksAfter
-});
+const hide = (user, currentUser) => user.user_id === currentUser ? _.omit(user, '_id') : _.pick(user, ['user_id', 'nickname']);
 
 const hideUsersData = (hook) => {
-	console.log(hook);
-	const currentUser = hook.params.user._id;
-	hook.result = hook.result.map((user) => user.user_id === currentUser ? _.omit(user, '_id') : _.pick(user, ['user_id', 'nickname']));
+	console.log(hook.result);
+	hook.result.data = hook.result.data.map((user) => hide(user, hook.params.user._id));
 };
 
 const hideUserData = (hook) => {
-	console.log(hook);
-	const currentUser = hook.params.user._id;
-	const user = hook.result;
-	hook.result = user.user_id === currentUser ? _.omit(user, '_id') : _.pick(user, ['user_id', 'nickname']);
+	hook.result = hide(hook.result, hook.params.user._id);
 };
 
 app.use('/users/me', {
 	find(params){
-		return User.findOne({user_id: params.user._id}).exec();
+		return User.findOne({user_id: params.user._id}).lean().exec().then((x) => _.omit(x, '_id'));
 	}
 });
 app.service('/users/me').hooks({
@@ -203,11 +187,11 @@ app.service('/users/me').hooks({
 });
 
 //TODO: Should allow patch for nickname and profile picture change, get is not working yet (and the ID should be the user_id when searching)
-app.use('/users', MongoService({Model: User}));
+app.use('/users', MongoService({Model: User, id: 'user_id', paginate: {default: 50, max: 100}}));
 app.service('/users').hooks({
 	before: {
 		find: authenticate,
-		get: [commonHooks.disallow()], //Use find instead of GET as _id can not be mapped to user_id
+		get: authenticate,
 		create: [commonHooks.disallow()],
 		update: [commonHooks.disallow()],
 		patch: [commonHooks.disallow()]

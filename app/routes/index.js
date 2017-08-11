@@ -11,8 +11,6 @@ const handler = require('feathers-errors/handler');
 // const ensimeClient = require('ensime-client');
 const cors = require('cors');
 const Bluebird = require('bluebird');
-// const uuidV4 = require('uuid/v4');
-// const spawn = require('child_process').spawn;
 const path = require('path');
 const fs = require('fs');
 const dauria = require('dauria');
@@ -26,6 +24,7 @@ const Like = require('../models/like');
 const Follower = require('../models/follower');
 const User = require('../models/user');
 const SbtService = require('../services/sbt-service');
+const compression = require('compression');
 // const sketchesShowcase = require('../services/sketches-showcase');
 
 const errorHandler = require('feathers-errors/handler');
@@ -42,7 +41,16 @@ mongoose.connect('mongodb://c2lab:e5GLCyghJCkpph2C@ds161495.mlab.com:61495/c2lab
 // A Feathers app is the same as an Express app
 const app = feathers();
 
-app.use(require('compression')())
+function shouldCompress (req, res) {
+	if (res.notCompress) {
+		console.log('not compress !!');
+		return false;
+	}
+	// fallback to standard filter function
+	return compression.filter(req, res)
+}
+
+app.use(compression({filter: shouldCompress}))
    .use(cors())
    .use(bodyParser.json())
    .use(bodyParser.urlencoded({ extended: true }));
@@ -50,34 +58,54 @@ app.use(require('compression')())
 console.log(path.resolve('./c2lab.pem'));
 // console.log(fs.readFile());
 
+const jwtConfig = {
+	//  // Validate the audience and the issuer
+	audience: 'VUs3zBHunPr1YqUooaqN0D1g9IaACyoH',
+	issuer: 'https://c2lab.auth0.com/',
+	algorithms: ['RS256', 'HS256']
+};
+
+const secret = Buffer.from(fs.readFileSync(path.resolve('c2lab.pem'), 'utf8'));
+
 app.configure(hooks())
    .configure(rest())
-	 .configure(authentication({
-		  secret: Buffer.from(fs.readFileSync(path.resolve('c2lab.pem'), 'utf8'))
-		}
-	 ))
-	 .configure(jwt(
-	  	{
-		//  // Validate the audience and the issuer
-		  audience: 'VUs3zBHunPr1YqUooaqN0D1g9IaACyoH',
-		  issuer: 'https://c2lab.auth0.com/',
-			algorithms: ['RS256', 'HS256']
-	  }
-	 ))
+	 .configure(authentication({secret}))
+	 .configure(jwt(jwtConfig))
    .use(handler())
    .use(errorHandler());
 
+const authenticate = [authentication.hooks.authenticate('jwt'), (hook) => {hook.params.user._id = hook.params.payload.sub}];
 
-//TODO: falta autenticacion y verificar solo privado, whitelist, etc.
-app.use('/sketches/showcase', feathers.static(path.join(__dirname, '../../sketches-showcase')));
-
-app.use('/healthcheck', {
-	find(){
-		return Bluebird.resolve('OK')
-	}
+const ejwt = require('express-jwt')({
+	secret,
+	audience: jwtConfig.audience,
+	issuer: jwtConfig.issuer,
+	algorithms: jwtConfig.algorithms
 });
 
-const authenticate = [authentication.hooks.authenticate('jwt'), (hook) => {hook.params.user._id = hook.params.payload.sub}];
+const zlib = require('zlib');
+Bluebird.promisifyAll(zlib);
+
+app.get('/sketches/showcase/:id', ejwt, (req, res) => {
+	console.log(req.params.id);
+	Sketch.findOne({_id: req.params.id, $or: [{public: true}, {owner: req.user.sub}]}, {showcase: 1}).exec()
+		.then((x) => {
+			if (x === null) {
+				res.status(403).send();
+			} else {
+				//TODO: do not decompress an re compress. Send gzipped
+				// res.notCompress = true;
+				// res.contentType('text/html');
+				// res.set('Content-Encoding', 'gzip');
+				return zlib.gunzipAsync(new Buffer(x.showcase, 'base64')).then((x) => res.send(x.toString()));
+			}
+		});
+});
+
+
+
+app.get('/healthcheck', (req, res) =>  res.send('OK'));
+
 
 app.use('/sketches/preview', {
 		create(data, params) {
@@ -129,7 +157,24 @@ app.service('/followers').hooks({
 	}
 });
 
+const sketchesShownParams = (hook) => {
+	hook.params.query.$select = [
+	'title',
+	'code',
+	'tags',
+	'owner',
+	'thumbnails',
+	'is_public',
+	'created_at',
+	'updated_at'
+	];
+};
+
 app.service('/sketches').hooks({
+	before: {
+		get: sketchesShownParams,
+		find: sketchesShownParams
+	},
 	after: SketchesHooksAfter
 });
 

@@ -10,39 +10,37 @@ const Like = require('../models/like');
 const uuidV4 = require('uuid/v4');
 const Bluebird = require('bluebird');
 const _ = require('lodash');
+const zlib = require('zlib');
+Bluebird.promisifyAll(zlib);
+
+const compress = (data) => zlib.gzipAsync(data).then((res) => res.toString('base64'));
 
 const SketchesHooksAfter = {
 	create(hook) {
 		SbtService.compile(hook.params.user._id, hook.result.code, SbtService.mode.FULL)
-			.then((code) => sketchesShowcase.create({id: `${uuidV4()}.html`,  uri: dauria.getBase64DataURI(new Buffer(code), 'text/html')}))
-			.then((showcase) =>  Sketch.update({_id: hook.result._id}, {$set: {published_id: showcase.id}}).exec());
+			.then(compress)
+			.then((showcase) =>  Sketch.update({_id: hook.result._id}, {$set: {showcase}}).exec());
 		return Promise.resolve(hook);
 	},
 
 	update(hook) {
 		SbtService.compile(hook.params.user._id, hook.result.code, SbtService.mode.FULL)
-			.tap(() => sketchesShowcase.remove(hook.result.published_id))
-			.then((code) => sketchesShowcase.create({id: hook.result.published_id,  uri: dauria.getBase64DataURI(new Buffer(code), 'text/html')}));
+			.then(compress)
+			.then((showcase) =>  Sketch.update({_id: hook.result._id}, {$set: {showcase}}).exec());
 		return Promise.resolve(hook);
 	},
 
 	patch(hook) {
-		//TODO: Check if code was mofified
 		if (hook.data.code){
 			SbtService.compile(hook.params.user._id, hook.result.code, SbtService.mode.FULL)
-				.tap(() => sketchesShowcase.remove(hook.result.published_id))
-				.then((code) => sketchesShowcase.create({id: hook.result.published_id,  uri: dauria.getBase64DataURI(new Buffer(code), 'text/html')}));
+				.then(compress)
+				.then((showcase) => Sketch.update({_id: hook.result._id}, {$set: {showcase}}).exec());
 		}
 		return Promise.resolve(hook);
 	},
 
 	remove(hook) {
-		Bluebird.resolve(_.flatten([hook.result])).map((r) => {
-			return Bluebird.all([
-				Like.remove({sketch_id: r._id}).exec(),
-				r.published_id && sketchesShowcase.remove(r.published_id)
-			])
-		}, {concurrency: 10});
+		Bluebird.resolve(_.flatten([hook.result])).map((r) => Like.remove({sketch_id: r._id}).exec(), {concurrency: 50});
 		return Promise.resolve(hook);
 	}
 };

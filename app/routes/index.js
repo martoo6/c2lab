@@ -77,15 +77,17 @@ const ejwt = require('express-jwt')({
 	secret,
 	audience: jwtConfig.audience,
 	issuer: jwtConfig.issuer,
-	algorithms: jwtConfig.algorithms
+	algorithms: jwtConfig.algorithms,
+	credentialsRequired: false
 });
 
 const zlib = require('zlib');
 Bluebird.promisifyAll(zlib);
 
-app.get('/sketches/showcase/:id', ejwt, (req, res) => {
-	console.log(req.params.id);
-	Sketch.findOne({_id: req.params.id, $or: [{public: true}, {owner: req.user.sub}]}, {showcase: 1}).lean().exec()
+app.get('/sketches/showcase/:id', ejwt, (req, res, next) => {
+	const conditions = [{is_public: true}];
+	if (req.user) conditions.push({owner: req.user.sub});
+	Sketch.findOne({_id: req.params.id, $or: conditions}, {showcase: 1}).lean().exec()
 		.then((x) => {
 			if (x === null) {
 				res.status(403).send();
@@ -97,7 +99,9 @@ app.get('/sketches/showcase/:id', ejwt, (req, res) => {
 				// res.send(x.showcase.toString());
 				return zlib.gunzipAsync(new Buffer(x.showcase, 'base64')).then((x) => res.send(x.toString()));
 			}
-		});
+		})
+		.catch((e) => e.name === 'CastError' && res.status(400).send())
+		.catch(next);
 });
 
 app.get('/healthcheck', (req, res) =>  res.send('OK'));

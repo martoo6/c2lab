@@ -49,8 +49,8 @@ function shouldCompress (req, res) {
 
 app.use(compression({filter: shouldCompress}))
    .use(cors())
-   .use(bodyParser.json())
-   .use(bodyParser.urlencoded({ extended: true }));
+   .use(bodyParser.json({limit: '50mb'}))
+   .use(bodyParser.urlencoded({limit: '50mb', extended: true }));
 
 console.log(path.resolve('./c2lab.pem'));
 // console.log(fs.readFile());

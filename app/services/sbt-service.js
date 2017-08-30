@@ -54,7 +54,11 @@ function startSbt() {
 	});
 }
 
-startSbt();
+if (!process.env.SBT_START_BLOCK) {
+	startSbt();
+} else {
+	console.warn('SBT startup disabled');
+}
 
 function pad(num, size) {
 	let s = num + "";

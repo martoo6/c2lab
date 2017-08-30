@@ -1,3 +1,4 @@
+require('dotenv').config();
 const feathers = require('feathers');
 const rest = require('feathers-rest');
 const hooks = require('feathers-hooks');
@@ -25,7 +26,6 @@ const compression = require('compression');
 // const ensimeClient = require('ensime-client');
 
 const errorHandler = require('feathers-errors/handler');
-require('dotenv').config();
 
 //TODO: MOVE TO CONFIG, USE .ENV
 mongoose.Promise = Bluebird;

@@ -21,8 +21,10 @@ const Sketch = require('../models/sketch');
 const Like = require('../models/like');
 const Follower = require('../models/follower');
 const User = require('../models/user');
+const Payment = require('../models/payment');
 const SbtService = require('../services/sbt-service');
 const compression = require('compression');
+const got = require('got');
 // const ensimeClient = require('ensime-client');
 
 const errorHandler = require('feathers-errors/handler');
@@ -106,12 +108,69 @@ app.get('/sketches/showcase/:id', ejwt, (req, res, next) => {
 
 app.get('/healthcheck', (req, res) =>  res.send('OK'));
 
+const paymentService = MongoService({Model: Payment, paginate: {default: 50, max: 100}});
+const usersService = MongoService({Model: User, id: 'user_id', paginate: {default: 50, max: 100}});
+
+app.post('/ipn', (req, res) => {
+	const payment = req.body;
+	Bluebird.resolve(got.post(process.env.IPN_URL + '?cmd=_notify-validate&', {
+		form: true,
+		headers: {
+			'User-Agent': 'c2lab-IPN-Verification'
+		},
+		body: payment
+	})).then((x) => {
+		if (x.body === 'VERIFIED'){
+			const userId = payment.custom;
+			console.log(userId);
+
+			if (userId && payment.payment_type === 'instant' && payment.txn_type === 'subscr_payment') {
+				return Bluebird.all([paymentService.create(req.body), usersService.patch(userId, { user_type: 'PREM' }, {query : {}})]);
+			}
+		}
+	}).tap(() => res.send(''))
+		.catch((e) => {
+			console.error(e);
+			res.send('');
+		});
+});
+
+let auth;
+
+const credentials = () => {
+	if (auth && auth.expiration > new Date().getTime()) {
+		return Bluebird.resolve(auth.credentials);
+	} else {
+		return Bluebird.resolve(got.post(`https://api.sandbox.paypal.com/v1/oauth2/token`, {
+			form: true,
+			json: true,
+			headers: {
+				Authorization: 'Basic ' + new Buffer(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_SECRET}`).toString('base64')
+			},
+			body: {
+				grant_type: 'client_credentials'
+			}
+		}))
+			.tap((r) => {
+			console.log(r.body);
+				const t = new Date();
+				t.setSeconds(t.getSeconds() + r.body.expires_in);
+				auth = {
+					credentials: r.body.access_token,
+					expiration: t.getTime()
+				}
+			})
+			.then((r) => r.body.access_token);
+	}
+};
+
 app.use('/sketches/preview', {
 		create(data, params) {
 			return SbtService.compile(params.user._id, data.code).then((code) => ({ code }));
 		}
 	}
 );
+
 app.service('/sketches/preview').hooks({
 	before: {
 		create: authenticate
@@ -191,7 +250,7 @@ app.service('/users/me').hooks({
 });
 
 //TODO: Should allow patch for nickname and profile picture change, get is not working yet (and the ID should be the user_id when searching)
-app.use('/users', MongoService({Model: User, id: 'user_id', paginate: {default: 50, max: 100}}));
+app.use('/users', usersService);
 app.service('/users').hooks({
 	before: {
 		find: authenticate,

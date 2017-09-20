@@ -63,7 +63,8 @@
     "strip-ansi": "4.0.0",
     "uuid": "^3.1.0",
     "validator": "^8.0.0",
-    "wrench": "^1.5.9"
+    "wrench": "^1.5.9",
+    "got": "latest"
   },
   "devDependencies": {
     "supertest": "3.0.0"

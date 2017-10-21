@@ -7,7 +7,7 @@ const sketchSchema = new Schema({
 	tags: { type: [String], default: [] },
 	owner: { type: String },
 	thumbnails: { type: [String], default: [] },
-	is_public: { type: String, default: true },
+	is_public: { type: Boolean, default: true },
 	showcase: { type: String }
 }, { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at'}});
 

@@ -228,7 +228,7 @@ app.service('/followers').hooks({
 	}
 });
 
-const hide = (user, currentUser) => user.user_id === currentUser ? _.omit(user, '_id') : _.pick(user, ['user_id', 'nickname']);
+const hide = (user, currentUser) => user.user_id === currentUser ? _.omit(user, '_id') : _.pick(user, ['user_id', 'nickname', 'profile_picture']);
 
 const hideUsersData = (hook) => {
 	console.log(hook.result);

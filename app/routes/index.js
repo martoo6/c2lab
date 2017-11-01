@@ -250,11 +250,17 @@ app.service('/users/me').hooks({
 	}
 });
 
+const nicknameRegex = (h) => {
+	const nickname = h.params.query.nickname;
+	if(nickname) h.params.query.nickname = { $regex: new RegExp(`^${nickname}.*`) };
+	return h;
+};
+
 //TODO: Should allow patch for nickname and profile picture change, get is not working yet (and the ID should be the user_id when searching)
 app.use('/users', usersService);
 app.service('/users').hooks({
 	before: {
-		find: authenticate,
+		find: _.concat(authenticate, nicknameRegex),
 		get: authenticate,
 		create: [commonHooks.disallow()],
 		update: [commonHooks.disallow()],

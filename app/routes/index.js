@@ -191,11 +191,17 @@ const sketchesShownParams = (hook) => {
 	];
 };
 
+const filterPrivateSketches = (hook) => {
+	const currentUser = hook.params.user._id
+	if (hook.params.query.owner && currentUser !== hook.params.query.owner) hook.params.query.is_public = true;
+	return hook;
+}
+
 //TODO: This configuration does not allow for generic sketch searches, any sketch should be avilable but the query should have extra restriction by public id
 app.use('/sketches', MongoService({Model: Sketch, paginate: {default: 50, max: 100}}));
 app.service('/sketches').hooks({
 	before: {
-		find: _.concat(authenticate, sketchesShownParams),
+		find: _.concat(authenticate, sketchesShownParams, filterPrivateSketches),
 		get: _.concat(authenticate, sketchesShownParams),
 		create: _.concat(authenticate, authHooks.associateCurrentUser({ as: 'owner' })),
 		update: _.concat(authenticate, authHooks.restrictToOwner({ ownerField: 'owner' })),
